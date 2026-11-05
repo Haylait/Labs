@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Гра 21</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 0;
+            padding: 20px;
+            background-color: #f9f9f9;
+        }
+        .game-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 20px;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        .player-section {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 150px;
+        }
+        .player-name {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        .score {
+            background-color: #00aaff; /* Початковий колір, який будемо змінювати через JS */
+            color: white;
+            width: 100%;
+            padding: 5px 0;
+            font-weight: bold;
+            border-radius: 5px;
+            margin-bottom: 15px;
+            transition: background-color 0.5s ease;
+        }
+        .card {
+            width: 120px;
+            height: 180px;
+            border: 2px solid #333;
+            border-radius: 8px;
+            background-color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 36px;
+            font-weight: bold;
+            box-shadow: 2px 2px 5px rgba(0,0,0,0.2);
+            transition: transform 0.2s, box-shadow 0.2s; /* Анімація для стилів, які змінить JS */
+        }
+        .center-controls {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-width: 150px;
+        }
+        #attempt-text {
+            font-style: italic;
+            margin-bottom: 10px;
+        }
+        button {
+            background-color: #00ff00;
+            color: black;
+            border: none;
+            padding: 10px 20px;
+            font-size: 16px;
+            font-weight: bold;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        button:hover {
+            background-color: #00cc00;
+        }
+        #result-message {
+            margin-top: 15px;
+            font-weight: bold;
+            font-size: 18px;
+        }
+    </style>
+</head>
+<body>
+
+    <h2>Гра «21»</h2>
+    
+    <div class="game-container">
+        <div class="player-section">
+            <div class="player-name" id="user-name-display">User</div>
+            <div class="score" id="user-score">0</div>
+            <div class="card" id="user-card">🂠</div>
+        </div>
+
+        <div class="center-controls">
+            <div id="attempt-text">Спроба 0 з 3</div>
+            <button id="generate-btn">Generate</button>
+            <div id="result-message"></div>
+        </div>
+
+        <div class="player-section">
+            <div class="player-name">Computer</div>
+            <div class="score" id="comp-score">0</div>
+            <div class="card" id="comp-card">🂠</div>
+        </div>
+    </div>
+
+    <script>
+        const deck = [
+            { name: '6', value: 6, view: '6♠', color: 'black' },
+            { name: '7', value: 7, view: '7♣', color: 'black' },
+            { name: '8', value: 8, view: '8♥', color: 'red' },
+            { name: '9', value: 9, view: '9♦', color: 'red' },
+            { name: '10', value: 10, view: '10♠', color: 'black' },
+            { name: 'Валет', value: 2, view: 'J♣', color: 'black' },
+            { name: 'Дама', value: 3, view: 'Q♥', color: 'red' },
+            { name: 'Король', value: 4, view: 'K♦', color: 'red' },
+            { name: 'Туз', value: 11, view: 'A♠', color: 'black' }
+        ];
+
+        let userName = "";
+        let userTotal = 0;
+        let compTotal = 0;
+        let iteration = 0;
+
+        window.onload = () => {
+            while (!userName || userName.trim() === "") {
+                userName = prompt("Введіть ваше ім'я для початку гри:");
+                if (userName === null) userName = "Гравець";
+            }
+            document.getElementById('user-name-display').textContent = userName;
+        };
+
+        // Функція для візуального оновлення карти (МАНІПУЛЮВАННЯ СТИЛЯМИ)
+        function updateCardElement(cardElementId, cardData) {
+            const cardEl = document.getElementById(cardElementId);
+            cardEl.textContent = cardData.view;
+            
+            // Змінюємо стилі CSS через JavaScript
+            cardEl.style.color = cardData.color; // Червоний або чорний текст
+            cardEl.style.borderColor = cardData.color; // Рамка в колір масті
+            
+            // Додаємо ефект "підстрибування" через зміну CSS-трансформації
+            cardEl.style.transform = 'scale(1.1)';
+            cardEl.style.boxShadow = `0px 10px 15px ${cardData.color === 'red' ? 'rgba(255,0,0,0.3)' : 'rgba(0,0,0,0.3)'}`;
+            
+            // Повертаємо стиль до нормального стану через 200мс
+            setTimeout(() => {
+                cardEl.style.transform = 'scale(1)';
+                cardEl.style.boxShadow = '2px 2px 5px rgba(0,0,0,0.2)';
+            }, 200);
+        }
+
+        document.getElementById('generate-btn').addEventListener('click', function() {
+            if (iteration < 3) {
+                iteration++;
+                
+                const userCard = deck[Math.floor(Math.random() * deck.length)];
+                const compCard = deck[Math.floor(Math.random() * deck.length)];
+
+                userTotal += userCard.value;
+                compTotal += compCard.value;
+
+                // Викликаємо функцію маніпуляції стилями карток
+                updateCardElement('user-card', userCard);
+                updateCardElement('comp-card', compCard);
+
+                document.getElementById('user-score').textContent = userTotal;
+                document.getElementById('comp-score').textContent = compTotal;
+                document.getElementById('attempt-text').textContent = `Спроба ${iteration} з 3`;
+
+                if (iteration === 3) {
+                    // Змінюємо стилі при закінченні гри
+                    this.style.display = 'none'; // Ховаємо кнопку через CSS
+                    
+                    const resultMsgEl = document.getElementById('result-message');
+                    const userScoreEl = document.getElementById('user-score');
+                    const compScoreEl = document.getElementById('comp-score');
+
+                    if (userTotal > compTotal) {
+                        resultMsgEl.textContent = `Перемога! ${userName} виграв!`;
+                        resultMsgEl.style.color = 'green'; // JS зміна кольору тексту
+                        userScoreEl.style.backgroundColor = '#ffd700'; // Робимо фон рахунку золотим
+                        userScoreEl.style.color = '#000';
+                    } else if (compTotal > userTotal) {
+                        resultMsgEl.textContent = "Комп'ютер виграв!";
+                        resultMsgEl.style.color = 'red';
+                        compScoreEl.style.backgroundColor = '#ffd700';
+                        compScoreEl.style.color = '#000';
+                    } else {
+                        resultMsgEl.textContent = "Нічия!";
+                        resultMsgEl.style.color = 'gray';
+                        userScoreEl.style.backgroundColor = 'gray';
+                        compScoreEl.style.backgroundColor = 'gray';
+                    }
+                }
+            }
+        });
+    </script>
+</body>
+</html>
