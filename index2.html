@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Лабораторна робота №11 - Language learning</title>
-    <!-- Підключаємо jQuery -->
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <style>
         * {
@@ -174,7 +173,6 @@ $(document).ready(function() {
     let correctAnswers = 0;
     let incorrectAnswers = 0;
 
-    // 2. Ініціалізація гри
     function initGame() {
         words = [...initialDictionary].sort(() => Math.random() - 0.5);
         currentIndex = 0;
